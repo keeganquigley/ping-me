@@ -48,7 +48,7 @@ struct ConnectionDashboardView: View {
                     .foregroundStyle(Color.accentColor)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Connection Widget")
+                    Text("Ping Me")
                         .font(.headline)
                     Text("Live internet health and bandwidth snapshot")
                         .font(.caption)

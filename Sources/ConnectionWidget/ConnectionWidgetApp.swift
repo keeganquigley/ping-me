@@ -13,7 +13,7 @@ struct ConnectionWidgetApp: App {
     @StateObject private var monitor = ConnectivityMonitor()
 
     var body: some Scene {
-        Window("Connection Widget", id: "main-dashboard-window") {
+        Window("Ping Me", id: "main-dashboard-window") {
             ConnectionDashboardView()
                 .environmentObject(monitor)
         }
@@ -23,7 +23,7 @@ struct ConnectionWidgetApp: App {
                 .environmentObject(monitor)
         } label: {
             Image(systemName: monitor.menuBarSymbolName)
-                .accessibilityLabel("Connection Widget")
+                .accessibilityLabel("Ping Me")
         }
         .menuBarExtraStyle(.window)
     }

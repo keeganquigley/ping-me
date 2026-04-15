@@ -156,7 +156,7 @@ final class ConnectivityMonitor: ObservableObject {
         }
 
         return """
-        Connection Widget Diagnostics
+        Ping Me Diagnostics
         status=\(status.title)
         targetHost=\(redacted ? "<redacted>" : targetHost)
         publicInternetHostsOnly=\(publicInternetHostsOnly)
