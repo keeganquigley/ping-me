@@ -1,4 +1,4 @@
-# Ping Me
+# Ping Me 🎯
 Ping Me is a lightweight macOS menu bar app for monitoring internet connection health in real time.
 It gives a quick dashboard for reachability, latency trends, packet loss, and live RX/TX throughput.
 
@@ -22,3 +22,14 @@ swift run
 ```
 
 The app opens a dashboard window at launch and also stays available from the macOS menu bar.
+
+## Run unit tests
+```bash
+swift test
+```
+
+## Why I wrote this app
+I travel for work a lot and wanted an easy way to measure public wifi quality.
+
+---
+Built with Codex (with help from Oz in Warp).
