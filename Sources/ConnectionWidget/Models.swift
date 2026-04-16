@@ -1,12 +1,14 @@
 import Foundation
 
 enum ConnectionStatus: String, CaseIterable, Sendable {
+    case idle
     case online
     case degraded
     case offline
 
     var title: String {
         switch self {
+        case .idle: "Idle"
         case .online: "Online"
         case .degraded: "Degraded"
         case .offline: "Offline"
@@ -15,6 +17,7 @@ enum ConnectionStatus: String, CaseIterable, Sendable {
 
     var symbolName: String {
         switch self {
+        case .idle: "wifi"
         case .online: "wifi"
         case .degraded: "wifi.exclamationmark"
         case .offline: "wifi.slash"

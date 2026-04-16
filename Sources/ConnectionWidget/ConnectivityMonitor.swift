@@ -5,7 +5,7 @@ import Combine
 @MainActor
 final class ConnectivityMonitor: ObservableObject {
     @Published private(set) var isMonitoring = false
-    @Published private(set) var status: ConnectionStatus = .offline
+    @Published private(set) var status: ConnectionStatus = .idle
     @Published private(set) var pathSnapshot = PathSnapshot(
         isSatisfied: false,
         isExpensive: false,
@@ -74,7 +74,7 @@ final class ConnectivityMonitor: ObservableObject {
     }
 
     var currentOfflineDuration: TimeInterval? {
-        guard status != .online,
+        guard (status == .offline || status == .degraded),
               let lastSuccessAt
         else {
             return nil
@@ -124,7 +124,7 @@ final class ConnectivityMonitor: ObservableObject {
         isMonitoring = false
         monitorTask?.cancel()
         monitorTask = nil
-        status = pathSnapshot.isSatisfied ? .degraded : .offline
+        status = .idle
     }
 
     func clearHistory() {
@@ -134,7 +134,7 @@ final class ConnectivityMonitor: ObservableObject {
         if isMonitoring {
             status = .degraded
         } else {
-            status = pathSnapshot.isSatisfied ? .degraded : .offline
+            status = .idle
         }
     }
 
@@ -241,6 +241,10 @@ final class ConnectivityMonitor: ObservableObject {
     }
 
     private func recomputeStatus() {
+        guard isMonitoring else {
+            status = .idle
+            return
+        }
         if let latestProbe = probes.last, latestProbe.success {
             status = .online
             return

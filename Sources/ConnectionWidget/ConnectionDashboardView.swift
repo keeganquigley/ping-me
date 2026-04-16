@@ -17,6 +17,7 @@ struct ConnectionDashboardView: View {
                 metricsCard
                 settingsCard
                 utilityActionsCard
+                captivePortalActionsCard
                 speedTestLink
             }
             .padding(16)
@@ -72,6 +73,7 @@ struct ConnectionDashboardView: View {
 
     private var badgeColor: Color {
         switch monitor.status {
+        case .idle: .gray
         case .online: .green
         case .degraded: .orange
         case .offline: .red
@@ -257,6 +259,29 @@ struct ConnectionDashboardView: View {
         }
     }
 
+    private var captivePortalActionsCard: some View {
+        card {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Captive Portal")
+                    .font(.subheadline.weight(.semibold))
+
+                Button("Open Captive Portal Login") {
+                    openCaptivePortalLogin()
+                }
+                .buttonStyle(.bordered)
+                Button("No redirect? Try alternate trigger") {
+                    openAlternateCaptivePortalTrigger()
+                }
+                .buttonStyle(.borderless)
+                .font(.caption)
+
+                Text("Opens a captive-check page in your browser to trigger public Wi-Fi sign-in when the splash page does not appear.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     private var speedTestLink: some View {
         Link("Open Google Speed Test", destination: URL(string: "https://www.google.com/search?q=internet+speed+test")!)
             .font(.footnote.weight(.medium))
@@ -292,6 +317,30 @@ struct ConnectionDashboardView: View {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(monitor.redactedDiagnosticsReport(), forType: .string)
+    }
+
+    private func openCaptivePortalLogin() {
+        let workspace = NSWorkspace.shared
+        guard let primaryURL = URL(string: "http://captive.apple.com/hotspot-detect.html") else { return }
+
+        if workspace.open(primaryURL) {
+            return
+        }
+
+        guard let fallbackURL = URL(string: "http://neverssl.com/") else { return }
+        _ = workspace.open(fallbackURL)
+    }
+
+    private func openAlternateCaptivePortalTrigger() {
+        let workspace = NSWorkspace.shared
+        guard let primaryURL = URL(string: "http://1.1.1.1/") else { return }
+
+        if workspace.open(primaryURL) {
+            return
+        }
+
+        guard let fallbackURL = URL(string: "http://8.8.8.8/") else { return }
+        _ = workspace.open(fallbackURL)
     }
 
     private func formatPercent(_ value: Double) -> String {
