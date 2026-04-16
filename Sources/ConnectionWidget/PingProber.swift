@@ -37,14 +37,18 @@ enum HostAccessPolicy: Sendable {
 }
 
 enum HostAccessPolicyDecision: Equatable, Sendable {
-    case allowed
+    /// `pinnedAddress` is the numeric IP the caller must use for subsequent network
+    /// operations, preventing a DNS-rebinding TOCTOU where a second resolution could
+    /// return a private address after policy approval. It is `nil` only when the
+    /// policy is `.allowAny` and no resolution was performed.
+    case allowed(pinnedAddress: String?)
     case blocked(reason: String)
 }
 
 enum HostAccessPolicyEvaluator {
     static func evaluate(host: String, policy: HostAccessPolicy) -> HostAccessPolicyDecision {
         guard policy == .publicInternetOnly else {
-            return .allowed
+            return .allowed(pinnedAddress: nil)
         }
 
         var hints = addrinfo(
@@ -67,6 +71,7 @@ enum HostAccessPolicyEvaluator {
         defer { freeaddrinfo(resultPointer) }
 
         var hasUsableAddress = false
+        var pinnedAddress: String?
 
         for pointer in sequence(first: firstResult, next: { $0.pointee.ai_next }) {
             guard let addressPointer = pointer.pointee.ai_addr else { continue }
@@ -78,11 +83,17 @@ enum HostAccessPolicyEvaluator {
                 if !isPublicIPv4(sockaddr.sin_addr) {
                     return .blocked(reason: "Host resolves to a non-public IPv4 address")
                 }
+                if pinnedAddress == nil {
+                    pinnedAddress = numericHost(for: addressPointer, length: pointer.pointee.ai_addrlen)
+                }
             case AF_INET6:
                 hasUsableAddress = true
                 let sockaddr = addressPointer.withMemoryRebound(to: sockaddr_in6.self, capacity: 1) { $0.pointee }
                 if !isPublicIPv6(sockaddr.sin6_addr) {
                     return .blocked(reason: "Host resolves to a non-public IPv6 address")
+                }
+                if pinnedAddress == nil {
+                    pinnedAddress = numericHost(for: addressPointer, length: pointer.pointee.ai_addrlen)
                 }
             default:
                 continue
@@ -93,7 +104,31 @@ enum HostAccessPolicyEvaluator {
             return .blocked(reason: "No usable IP address found for host")
         }
 
-        return .allowed
+        guard let pinnedAddress else {
+            return .blocked(reason: "Unable to pin a resolved address for host")
+        }
+
+        return .allowed(pinnedAddress: pinnedAddress)
+    }
+
+    private static func numericHost(for address: UnsafePointer<sockaddr>, length: socklen_t) -> String? {
+        var buffer = [UInt8](repeating: 0, count: Int(NI_MAXHOST))
+        let status = buffer.withUnsafeMutableBufferPointer { bufferPointer -> Int32 in
+            bufferPointer.baseAddress!.withMemoryRebound(to: CChar.self, capacity: bufferPointer.count) { cCharPointer in
+                getnameinfo(
+                    address,
+                    length,
+                    cCharPointer,
+                    socklen_t(bufferPointer.count),
+                    nil,
+                    0,
+                    NI_NUMERICHOST
+                )
+            }
+        }
+        guard status == 0 else { return nil }
+        let terminatorIndex = buffer.firstIndex(of: 0) ?? buffer.count
+        return String(decoding: buffer.prefix(terminatorIndex), as: UTF8.self)
     }
 
     private static func isPublicIPv4(_ address: in_addr) -> Bool {
@@ -194,8 +229,11 @@ struct PingProber: Sendable {
         switch PingTargetValidator.validate(host) {
         case .valid(let validatedHost):
             switch HostAccessPolicyEvaluator.evaluate(host: validatedHost, policy: policy) {
-            case .allowed:
-                return await runProbe(host: validatedHost, waitTimeMs: waitTimeMs, at: timestamp)
+            case .allowed(let pinnedAddress):
+                // Pin to the resolved IP when the policy performed a lookup so that a
+                // second DNS resolution inside ping cannot swap in a private address.
+                let probeTarget = pinnedAddress ?? validatedHost
+                return await runProbe(host: probeTarget, waitTimeMs: waitTimeMs, at: timestamp)
             case .blocked(let reason):
                 return ProbeSample(
                     timestamp: timestamp,
@@ -220,7 +258,9 @@ struct PingProber: Sendable {
         await Task.detached(priority: .utility) {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/sbin/ping")
-            process.arguments = ["-n", "-c", "1", "-W", "\(waitTimeMs)", host]
+            // `--` ends option parsing so a hostile host (should the validator ever
+            // regress) cannot be interpreted as a ping flag.
+            process.arguments = ["-n", "-c", "1", "-W", "\(waitTimeMs)", "--", host]
 
             let stdoutPipe = Pipe()
             let stderrPipe = Pipe()
