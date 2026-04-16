@@ -12,9 +12,18 @@ It gives a quick dashboard for reachability, latency trends, packet loss, and li
 - Recent latency chart and success/failure history
 - Metrics for packet loss, jitter, average/max latency, and transfer rates
 - Diagnostics export with redacted clipboard copy flow
+- Captive portal splash-page recovery actions for public Wi-Fi sign-in issues
 - Safer host controls:
   - strict host input validation
   - optional **Public internet hosts only** policy (default on)
+
+## Captive portal splash-page recovery
+On some public Wi-Fi networks, the login/splash page can fail to appear (for example if the prompt was dismissed).
+Ping Me includes a **Captive Portal** section with:
+- **Open Captive Portal Login** to open a captive-check URL in your browser
+- **No redirect? Try alternate trigger** to try backup HTTP triggers
+
+These actions help re-trigger sign-in without disconnecting or forgetting the network.
 
 ## Requirements
 - macOS 13+
