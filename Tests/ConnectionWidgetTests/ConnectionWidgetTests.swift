@@ -108,7 +108,7 @@ func diagnosticsRedactionHidesTargetHost() {
 @Test
 func publicHostPolicyAllowsPublicIPv4Literal() {
     let decision = HostAccessPolicyEvaluator.evaluate(host: "8.8.8.8", policy: .publicInternetOnly)
-    #expect(decision == .allowed)
+    #expect(decision == .allowed(pinnedAddress: "8.8.8.8"))
 }
 
 @Test
@@ -136,5 +136,11 @@ func publicHostPolicyBlocksIPv6ULALiteral() {
 @Test
 func allowAnyPolicyAllowsPrivateIPv4Literal() {
     let decision = HostAccessPolicyEvaluator.evaluate(host: "192.168.1.50", policy: .allowAny)
-    #expect(decision == .allowed)
+    #expect(decision == .allowed(pinnedAddress: nil))
+}
+
+@Test
+func publicHostPolicyPinsResolvedIPv6Literal() {
+    let decision = HostAccessPolicyEvaluator.evaluate(host: "2606:4700:4700::1111", policy: .publicInternetOnly)
+    #expect(decision == .allowed(pinnedAddress: "2606:4700:4700::1111"))
 }
