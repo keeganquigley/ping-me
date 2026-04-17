@@ -2,9 +2,11 @@
 Ping Me is a lightweight macOS menu bar app for monitoring internet connection health in real time.
 It gives a quick dashboard for reachability, latency trends, packet loss, and live RX/TX throughput.
 
-<img width="413" height="621" alt="Screenshot 2026-04-15 at 12 36 20 AM" src="https://github.com/user-attachments/assets/879c9d49-c716-4949-8e14-e93914b58db0" />
-
-<img width="421" height="624" alt="Screenshot 2026-04-15 at 9 30 23 PM" src="https://github.com/user-attachments/assets/40fd1c76-dade-4d4e-b903-60b8bcc3ed0f" />
+<p align="center">
+  <img width="413" height="621" alt="Screenshot 2026-04-15 at 12 36 20 AM" src="https://github.com/user-attachments/assets/879c9d49-c716-4949-8e14-e93914b58db0" />
+  <br />
+  <img width="421" height="624" alt="Screenshot 2026-04-15 at 9 30 23 PM" src="https://github.com/user-attachments/assets/40fd1c76-dade-4d4e-b903-60b8bcc3ed0f" />
+</p>
 
 ## Highlights
 - Menu bar status icon with quick dashboard access
