@@ -27,6 +27,10 @@ Ping Me includes a **Captive Portal** section with:
 
 These actions help re-trigger sign-in without disconnecting or forgetting the network.
 
+## Documentation
+A full end-user walkthrough lives in [USER_GUIDE.md](USER_GUIDE.md).
+A static web version (deployable to Vercel) lives in [docs/](docs/).
+
 ## Requirements
 - macOS 13+
 - Swift 6 toolchain
