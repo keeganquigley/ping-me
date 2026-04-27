@@ -9,7 +9,7 @@ let package = Package(
         .macOS(.v13),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-testing.git", from: "0.14.0"),
+        .package(url: "https://github.com/apple/swift-testing.git", from: "6.3.1"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
